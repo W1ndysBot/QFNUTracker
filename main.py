@@ -4,6 +4,7 @@ import sys
 import asyncio
 import requests
 from bs4 import BeautifulSoup
+from datetime import datetime
 
 # 添加项目根目录到sys.path
 sys.path.append(
@@ -26,9 +27,6 @@ url = "https://jwc.qfnu.edu.cn/tz_j_.htm"
 
 # 用于存储上一次页面内容的变量
 last_content = None
-
-# 用于存储任务
-running_tasks = {}
 
 
 # 检查权限
@@ -73,11 +71,17 @@ def fetch_content():
 
 
 # 监控教务处公告
-async def monitor_jwc_announcements(websocket, group_id, loop):
+async def monitor_jwc_announcements(websocket, group_id):
     if load_function_status(group_id):
         logging.info(f"群 {group_id} 执行QFNU教务处公告监控")
         updated_content = fetch_content()
         if updated_content:
+            current_time = datetime.now()
+            # 检查当前时间的分钟数是否是5的倍数，表示每五分钟检查一次
+            if current_time.minute % 5 != 0:
+                logging.info(f"群 {group_id} 公告发送频率限制，跳过本次发送")
+                return
+
             soup = BeautifulSoup(updated_content, "html.parser")
             announcements = soup.find_all("li")
             if announcements:
@@ -90,27 +94,6 @@ async def monitor_jwc_announcements(websocket, group_id, loop):
                     group_id,
                     f"曲阜师范大学教务处公告有新内容啦：\n标题：{title}\n摘要：{summary}\n链接：{link}\n\n机器人播报技术支持：https://github.com/W1ndys-bot/W1ndys-Bot",
                 )
-
-    loop.call_later(
-        300,  # 300秒后执行
-        lambda: asyncio.create_task(
-            monitor_jwc_announcements(websocket, group_id, loop)
-        ),
-    )
-
-
-async def job(websocket, group_id):
-    group_id = str(group_id)
-    if group_id not in running_tasks:
-        task = asyncio.create_task(
-            monitor_jwc_announcements(websocket, group_id, asyncio.get_event_loop())
-        )
-        running_tasks[group_id] = task
-        logging.info(
-            f"新增群 {group_id} 的监控教务处公告任务，当前任务列表: {list(running_tasks.keys())}"
-        )
-    else:
-        logging.info(f"群 {group_id} 的教务处公告监控任务已经在运行")
 
 
 # 群消息处理函数
@@ -136,9 +119,8 @@ async def handle_QFNUJWCTracker_group_message(websocket, msg):
 
                 else:
                     save_function_status(group_id, True)
-                    await job(websocket, group_id)
+                    await monitor_jwc_announcements(websocket, group_id)
                     logging.info(f"已开启群 {group_id} 的QFNU教务处公告监控任务")
-                    logging.info(f"当前运行的任务列表: {list(running_tasks.keys())}")
                     await send_group_msg(
                         websocket,
                         group_id,
@@ -150,13 +132,7 @@ async def handle_QFNUJWCTracker_group_message(websocket, msg):
             if raw_message == "qfnujwc-off":
                 if load_function_status(group_id):
                     save_function_status(group_id, False)
-                    if group_id in running_tasks:
-                        running_tasks[group_id].cancel()
-                        del running_tasks[group_id]
-                        logging.info(f"已取消群 {group_id} 的QFNU教务处公告监控任务")
-                        logging.info(
-                            f"当前运行的任务列表: {list(running_tasks.keys())}"
-                        )
+                    logging.info(f"已取消群 {group_id} 的QFNU教务处公告监控任务")
                     await send_group_msg(
                         websocket,
                         group_id,
@@ -178,10 +154,10 @@ async def handle_QFNUJWCTracker_group_message(websocket, msg):
         logging.error(f"处理QFNU_JWC_Tracker群消息失败: {e}")
 
 
-# 程序开机自动执行的函数，会在每个心跳周期检查一次
+# 程序开机自动执行的函数，每个心跳周期检查一次
 async def start_qfnujwc_tracker(websocket):
     all_switches = get_all_group_switches()
     for group_id, switches in all_switches.items():
         group_id = str(group_id)
         if switches.get("教务处公告监控"):
-            await job(websocket, group_id)
+            await monitor_jwc_announcements(websocket, group_id)
