@@ -71,28 +71,41 @@ def fetch_content():
 
 
 # 监控教务处公告
+last_check_time = {}
+
+
 async def monitor_jwc_announcements(websocket, group_id):
-    if load_function_status(group_id):
-        # 检查当前时间的分钟数是否是5的倍数，表示每五分钟检查一次
-        current_time = datetime.now()
-        if current_time.minute % 5 != 0:
-            return
-        logging.info(f"群 {group_id} 执行QFNU教务处公告监控")
-        updated_content = fetch_content()
-        if updated_content:
-            logging.info(f"群 {group_id} 检测到教务处公告有更新")
-            soup = BeautifulSoup(updated_content, "html.parser")
-            announcements = soup.find_all("li")
-            if announcements:
-                announcement = announcements[0]
-                title = announcement.find("a").text.strip()
-                link = "https://jwc.qfnu.edu.cn/" + announcement.find("a")["href"]
-                summary = announcement.find("p").text.strip()
-                await send_group_msg(
-                    websocket,
-                    group_id,
-                    f"曲阜师范大学教务处公告有新内容啦：\n标题：{title}\n摘要：{summary}\n链接：{link}\n\n机器人播报技术支持：https://github.com/W1ndys-bot/W1ndys-Bot",
-                )
+    global last_check_time
+    current_time = datetime.now()
+
+    # 检查当前时间的分钟数是否是5的倍数，表示每五分钟检查一次
+    if current_time.minute % 5 != 0:
+        return
+
+    # 检查是否在同一分钟内已经检查过
+    if (
+        group_id in last_check_time
+        and last_check_time[group_id].minute == current_time.minute
+    ):
+        return
+
+    last_check_time[group_id] = current_time
+    logging.info(f"群 {group_id} 执行QFNU教务处公告监控")
+    updated_content = fetch_content()
+    if updated_content:
+        logging.info(f"群 {group_id} 检测到教务处公告有更新")
+        soup = BeautifulSoup(updated_content, "html.parser")
+        announcements = soup.find_all("li")
+        if announcements:
+            announcement = announcements[0]
+            title = announcement.find("a").text.strip()
+            link = "https://jwc.qfnu.edu.cn/" + announcement.find("a")["href"]
+            summary = announcement.find("p").text.strip()
+            await send_group_msg(
+                websocket,
+                group_id,
+                f"曲阜师范大学教务处公告有新内容啦：\n标题：{title}\n摘要：{summary}\n链接：{link}\n\n机器人播报技术支持：https://github.com/W1ndys-bot/W1ndys-Bot",
+            )
 
 
 # 群消息处理函数
