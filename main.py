@@ -75,7 +75,7 @@ def fetch_content():
 # 监控教务处公告
 async def monitor_jwc_announcements(websocket, group_id, loop):
     if load_function_status(group_id):
-        logging.info(f"执行QFNU教务处公告监控")
+        logging.info(f"群 {group_id} 执行QFNU教务处公告监控")
         updated_content = fetch_content()
         if updated_content:
             soup = BeautifulSoup(updated_content, "html.parser")
@@ -100,22 +100,24 @@ async def monitor_jwc_announcements(websocket, group_id, loop):
 
 
 async def job(websocket, group_id):
+    group_id = str(group_id)
     if group_id not in running_tasks:
         task = asyncio.create_task(
             monitor_jwc_announcements(websocket, group_id, asyncio.get_event_loop())
         )
         running_tasks[group_id] = task
-        # 打印当前的任务列表
-        logging.info(f"当前运行的任务列表: {list(running_tasks.keys())}")
+        logging.info(
+            f"新增群 {group_id} 的监控教务处公告任务，当前任务列表: {list(running_tasks.keys())}"
+        )
     else:
-        logging.info(f"群 {group_id} 的任务已经在运行")
+        logging.info(f"群 {group_id} 的教务处公告监控任务已经在运行")
 
 
 # 群消息处理函数
 async def handle_QFNUJWCTracker_group_message(websocket, msg):
     try:
         user_id = msg.get("user_id")
-        group_id = msg.get("group_id")
+        group_id = str(msg.get("group_id"))
         raw_message = msg.get("raw_message")
         role = msg.get("sender", {}).get("role")
         message_id = str(msg.get("message_id"))
@@ -134,13 +136,15 @@ async def handle_QFNUJWCTracker_group_message(websocket, msg):
 
                 else:
                     save_function_status(group_id, True)
-                    task = asyncio.create_task(job(websocket, group_id))
-                    running_tasks[group_id] = task
+                    await job(websocket, group_id)
+                    logging.info(f"已开启群 {group_id} 的QFNU教务处公告监控任务")
+                    logging.info(f"当前运行的任务列表: {list(running_tasks.keys())}")
                     await send_group_msg(
                         websocket,
                         group_id,
                         "[CQ:reply,id=" + message_id + "]QFNU教务处公告监控已开启",
                     )
+
                     return
 
             if raw_message == "qfnujwc-off":
@@ -150,11 +154,15 @@ async def handle_QFNUJWCTracker_group_message(websocket, msg):
                         running_tasks[group_id].cancel()
                         del running_tasks[group_id]
                         logging.info(f"已取消群 {group_id} 的QFNU教务处公告监控任务")
+                        logging.info(
+                            f"当前运行的任务列表: {list(running_tasks.keys())}"
+                        )
                     await send_group_msg(
                         websocket,
                         group_id,
                         "[CQ:reply,id=" + message_id + "]QFNU教务处公告监控已关闭",
                     )
+
                     return
                 else:
                     await send_group_msg(
@@ -170,10 +178,10 @@ async def handle_QFNUJWCTracker_group_message(websocket, msg):
         logging.error(f"处理QFNU_JWC_Tracker群消息失败: {e}")
 
 
-# 程序开机自动执行的函数
-async def start_qfnujwc_tracker(websocket, msg):
+# 程序开机自动执行的函数，会在每个心跳周期检查一次
+async def start_qfnujwc_tracker(websocket):
     all_switches = get_all_group_switches()
     for group_id, switches in all_switches.items():
+        group_id = str(group_id)
         if switches.get("教务处公告监控"):
-            logging.info(f"检测到群{group_id}开启了教务处公告监控，开始执行")
             await job(websocket, group_id)
