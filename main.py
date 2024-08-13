@@ -18,7 +18,7 @@ from app.switch import load_switch, save_switch, get_all_group_switches
 DATA_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
     "data",
-    "QFNU_JWC_Tracker",
+    "QFNUJWCTracker",
 )
 
 # 目标网站地址
@@ -92,7 +92,7 @@ async def monitor_jwc_announcements(websocket, group_id, loop):
                 )
 
     loop.call_later(
-        5,  # 60秒后执行
+        300,  # 300秒后执行
         lambda: asyncio.create_task(
             monitor_jwc_announcements(websocket, group_id, loop)
         ),
@@ -104,6 +104,8 @@ async def job(websocket, group_id):
         monitor_jwc_announcements(websocket, group_id, asyncio.get_event_loop())
     )
     running_tasks[group_id] = task
+    # 打印当前的任务列表
+    logging.info(f"当前运行的任务列表: {list(running_tasks.keys())}")
 
 
 # 群消息处理函数
@@ -150,4 +152,4 @@ async def start_qfnujwc_tracker(websocket, msg):
     for group_id, switches in all_switches.items():
         if switches.get("教务处公告监控"):
             logging.info(f"检测到群{group_id}开启了教务处公告监控，开始执行")
-        await job(websocket, group_id)
+            await job(websocket, group_id)
