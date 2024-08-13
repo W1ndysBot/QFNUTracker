@@ -73,15 +73,14 @@ def fetch_content():
 # 监控教务处公告
 async def monitor_jwc_announcements(websocket, group_id):
     if load_function_status(group_id):
+        # 检查当前时间的分钟数是否是5的倍数，表示每五分钟检查一次
+        current_time = datetime.now()
+        if current_time.minute % 5 != 0:
+            return
         logging.info(f"群 {group_id} 执行QFNU教务处公告监控")
         updated_content = fetch_content()
         if updated_content:
-            current_time = datetime.now()
-            # 检查当前时间的分钟数是否是5的倍数，表示每五分钟检查一次
-            if current_time.minute % 5 != 0:
-                logging.info(f"群 {group_id} 公告发送频率限制，跳过本次发送")
-                return
-
+            logging.info(f"群 {group_id} 检测到教务处公告有更新")
             soup = BeautifulSoup(updated_content, "html.parser")
             announcements = soup.find_all("li")
             if announcements:
