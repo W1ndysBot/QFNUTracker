@@ -71,10 +71,10 @@ def fetch_content():
 
 
 # 监控教务处公告
-last_check_time = {}
+last_check_time = None
 
 
-async def monitor_jwc_announcements(websocket, group_id):
+async def monitor_jwc_announcements(websocket):
     global last_check_time
     current_time = datetime.now()
 
@@ -83,17 +83,14 @@ async def monitor_jwc_announcements(websocket, group_id):
         return
 
     # 检查是否在同一分钟内已经检查过
-    if (
-        group_id in last_check_time
-        and last_check_time[group_id].minute == current_time.minute
-    ):
+    if last_check_time and last_check_time.minute == current_time.minute:
         return
 
-    last_check_time[group_id] = current_time
-    logging.info(f"群 {group_id} 执行QFNU教务处公告监控")
+    last_check_time = current_time
+    logging.info("执行QFNU教务处公告监控")
     updated_content = fetch_content()
     if updated_content:
-        logging.info(f"群 {group_id} 检测到教务处公告有更新")
+        logging.info("检测到教务处公告有更新")
         soup = BeautifulSoup(updated_content, "html.parser")
         announcements = soup.find_all("li")
         if announcements:
@@ -101,11 +98,14 @@ async def monitor_jwc_announcements(websocket, group_id):
             title = announcement.find("a").text.strip()
             link = "https://jwc.qfnu.edu.cn/" + announcement.find("a")["href"]
             summary = announcement.find("p").text.strip()
-            await send_group_msg(
-                websocket,
-                group_id,
-                f"曲阜师范大学教务处公告有新内容啦：\n标题：{title}\n摘要：{summary}\n链接：{link}\n\n机器人播报技术支持：https://github.com/W1ndys-bot/W1ndys-Bot",
-            )
+            all_switches = get_all_group_switches()
+            for group_id, switches in all_switches.items():
+                if switches.get("教务处公告监控"):
+                    await send_group_msg(
+                        websocket,
+                        group_id,
+                        f"曲阜师范大学教务处公告有新内容啦：\n标题：{title}\n摘要：{summary}\n链接：{link}\n\n机器人播报技术支持：https://github.com/W1ndys-bot/W1ndys-Bot",
+                    )
 
 
 # 群消息处理函数
@@ -168,8 +168,4 @@ async def handle_QFNUJWCTracker_group_message(websocket, msg):
 
 # 程序开机自动执行的函数，每个心跳周期检查一次
 async def start_qfnujwc_tracker(websocket):
-    all_switches = get_all_group_switches()
-    for group_id, switches in all_switches.items():
-        group_id = str(group_id)
-        if switches.get("教务处公告监控"):
-            await monitor_jwc_announcements(websocket, group_id)
+    await monitor_jwc_announcements(websocket)
