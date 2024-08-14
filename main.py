@@ -131,7 +131,7 @@ async def handle_QFNUJWCTracker_group_message(websocket, msg):
 
                 else:
                     save_function_status(group_id, True)
-                    await monitor_jwc_announcements(websocket, group_id)
+                    # await monitor_jwc_announcements(websocket)  # 这边貌似不用了，因为已经每五秒检查一次了，有点多余
                     logging.info(f"已开启群 {group_id} 的QFNU教务处公告监控任务")
                     await send_group_msg(
                         websocket,
