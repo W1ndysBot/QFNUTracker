@@ -120,7 +120,6 @@ async def handle_QFNUJWCTracker_group_message(websocket, msg):
         raw_message = msg.get("raw_message")
         role = str(msg.get("sender", {}).get("role"))
         message_id = str(msg.get("message_id"))
-
         if is_authorized(role, user_id):
             if raw_message == "qfnujwc-on":
                 if load_function_status(group_id):
