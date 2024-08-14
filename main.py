@@ -114,7 +114,7 @@ async def handle_QFNUJWCTracker_group_message(websocket, msg):
         user_id = msg.get("user_id")
         group_id = str(msg.get("group_id"))
         raw_message = msg.get("raw_message")
-        role = msg.get("sender", {}).get("role")
+        role = str(msg.get("sender", {}).get("role"))
         message_id = str(msg.get("message_id"))
 
         if is_authorized(role, user_id):
