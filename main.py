@@ -83,7 +83,7 @@ async def monitor_announcements(
     current_time = datetime.now()
 
     # 检查当前时间的分钟数是否是5的倍数，表示每五分钟检查一次
-    if current_time.minute % 1 != 0:
+    if current_time.minute % 5 != 0:
         return last_content, last_check_time
 
     # 检查是否在同一分钟内已经检查过
