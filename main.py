@@ -73,20 +73,22 @@ def fetch_content(url, last_content):
 
 
 # 监控教务处公告
-last_check_time = None
+last_jwc_check_time = None
+last_zcc_check_time = None
 
 
-async def monitor_announcements(websocket, url, last_content, site_name):
-    global last_check_time
+async def monitor_announcements(
+    websocket, url, last_content, site_name, last_check_time
+):
     current_time = datetime.now()
 
     # 检查当前时间的分钟数是否是5的倍数，表示每五分钟检查一次
-    if current_time.minute % 5 != 0:
-        return
+    if current_time.minute % 1 != 0:
+        return last_content, last_check_time
 
     # 检查是否在同一分钟内已经检查过
     if last_check_time and last_check_time.minute == current_time.minute:
-        return
+        return last_content, last_check_time
 
     last_check_time = current_time
     last_content, updated_content = fetch_content(url, last_content)
@@ -111,20 +113,20 @@ async def monitor_announcements(websocket, url, last_content, site_name):
                         group_id,
                         f"{site_name}公告有新内容啦：\n标题：{title}\n摘要：{summary}\n链接：{link}\n\n机器人播报技术支持：https://github.com/W1ndys-bot/W1ndys-Bot",
                     )
-    return last_content
+    return last_content, last_check_time
 
 
 async def monitor_jwc_announcements(websocket):
-    global last_jwc_content
-    last_jwc_content = await monitor_announcements(
-        websocket, jwc_url, last_jwc_content, "QFNU教务处"
+    global last_jwc_content, last_jwc_check_time
+    last_jwc_content, last_jwc_check_time = await monitor_announcements(
+        websocket, jwc_url, last_jwc_content, "QFNU教务处", last_jwc_check_time
     )
 
 
 async def monitor_zcc_announcements(websocket):
-    global last_zcc_content
-    last_zcc_content = await monitor_announcements(
-        websocket, zcc_url, last_zcc_content, "QFNU资产处"
+    global last_zcc_content, last_zcc_check_time
+    last_zcc_content, last_zcc_check_time = await monitor_announcements(
+        websocket, zcc_url, last_zcc_content, "QFNU资产处", last_zcc_check_time
     )
 
 
