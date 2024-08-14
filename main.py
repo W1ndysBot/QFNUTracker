@@ -54,20 +54,24 @@ def save_function_status(group_id, status):
 # 获取网页内容
 def fetch_content():
     global last_content
-    response = requests.get(url)
-    response.encoding = "utf-8"
-    soup = BeautifulSoup(response.text, "html.parser")
-    found_content = soup.find("ul", {"class": "n_listxx1"})
-    current_content = found_content.encode("utf-8") if found_content else None
+    try:
+        response = requests.get(url)
+        response.encoding = "utf-8"
+        soup = BeautifulSoup(response.text, "html.parser")
+        found_content = soup.find("ul", {"class": "n_listxx1"})
+        current_content = found_content.encode("utf-8") if found_content else None
 
-    if last_content is None:
-        last_content = current_content
+        if last_content is None:
+            last_content = current_content
+            return None
+
+        if current_content != last_content:
+            last_content = current_content
+            return current_content
         return None
-
-    if current_content != last_content:
-        last_content = current_content
-        return current_content
-    return None
+    except requests.RequestException as e:
+        logging.error(f"获取网页内容失败: {e}")
+        return None
 
 
 # 监控教务处公告
