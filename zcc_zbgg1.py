@@ -13,7 +13,7 @@ from app.scripts.QFNUTracker.auth import is_authorized
 from app.api import send_group_msg
 
 
-zcc_url = "https://zcc.qfnu.edu.cn/ztzx/zbgg.htm"
+zcc_url = "https://zcc.qfnu.edu.cn/ztzx/zbgg1.htm"
 last_zcc_content = None
 last_zcc_check_time = None
 
