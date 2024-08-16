@@ -40,8 +40,8 @@ async def monitor_announcements(
 ):
     current_time = datetime.now()
 
-    # 检查当前时间的分钟数是否是5的倍数，表示每五分钟检查一次
-    if current_time.minute % 5 != 0:
+    # 检查当前时间的分钟数是否是5的倍数，表示每10分钟检查一次
+    if current_time.minute % 10 != 0:
         return last_content, last_check_time
 
     # 检查是否在同一分钟内已经检查过
@@ -54,8 +54,8 @@ async def monitor_announcements(
         return last_content, last_check_time  # 可以考虑抛出异常或其他退出方式
 
     last_content, updated_content = fetch_content(url, last_content)
+    last_check_time = current_time  # 更新检查时间
     if updated_content:
-        last_check_time = current_time  # 只有在成功获取更新内容后才更新检查时间
         logging.info(f"执行{site_name}监控")
         logging.info(f"检测到{site_name}公告有更新")
         soup = BeautifulSoup(updated_content, "html.parser")
