@@ -17,7 +17,8 @@ from app.api import send_group_msg
 
 def fetch_content(url, last_content):
     try:
-        response = requests.get(url)
+        # 设置请求超时为10秒
+        response = requests.get(url, timeout=10)  # 添加超时参数
         response.encoding = "utf-8"
         soup = BeautifulSoup(response.text, "html.parser")
         found_content = soup.find("ul", {"class": "n_listxx1"})
@@ -47,10 +48,15 @@ async def monitor_announcements(
     if last_check_time and last_check_time.minute == current_time.minute:
         return last_content, last_check_time
 
-    last_check_time = current_time
+    # 添加超时退出的逻辑，这里假设如果超过30分钟没有成功，则退出
+    if last_check_time and (current_time - last_check_time).total_seconds() > 1800:
+        logging.error(f"{site_name}监控超时，自动退出")
+        return last_content, last_check_time  # 可以考虑抛出异常或其他退出方式
+
     last_content, updated_content = fetch_content(url, last_content)
-    logging.info(f"执行{site_name}监控")
     if updated_content:
+        last_check_time = current_time  # 只有在成功获取更新内容后才更新检查时间
+        logging.info(f"执行{site_name}监控")
         logging.info(f"检测到{site_name}公告有更新")
         soup = BeautifulSoup(updated_content, "html.parser")
         announcements = soup.find_all("li")
