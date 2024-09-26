@@ -38,8 +38,8 @@ def fetch_content(url, last_content):
 async def monitor_announcements(websocket, url, last_title, site_name, last_check_time):
     current_time = datetime.now()
 
-    # 检查当前时间的分钟数是否是10的倍数，表示每10分钟检查一次
-    if current_time.minute % 10 != 0:
+    # 检查当前时间的分钟数是否是5的倍数，表示每5分钟检查一次
+    if current_time.minute % 5 != 0:
         return last_title, last_check_time
 
     # 检查是否在同一分钟内已经检查过
