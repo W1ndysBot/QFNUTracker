@@ -28,7 +28,7 @@ async def handle_QFNUTracker_group_message(websocket, msg):
         message_id = str(msg.get("message_id"))
         if is_authorized(role, user_id):
 
-            if raw_message == "qfnuzcc-on":
+            if raw_message == "qfnuzccon":
                 if load_function_status(group_id, "QFNU资产处"):
                     await send_group_msg(
                         websocket,
@@ -48,7 +48,7 @@ async def handle_QFNUTracker_group_message(websocket, msg):
                     )
                     return
 
-            if raw_message == "qfnuzcc-off":
+            if raw_message == "qfnuzccoff":
                 if load_function_status(group_id, "QFNU资产处"):
                     save_function_status(group_id, False, "QFNU资产处")
                     logging.info(f"已取消群 {group_id} 的QFNU资产处公告监控任务")

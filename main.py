@@ -45,10 +45,10 @@ async def QFNU(websocket, group_id, message_id):
 QFNU定制服务
 
 曲阜师范大学公告监控
-qfnujwc-on 开启教务处监控
-qfnujwc-off 关闭教务处监控
-qfnuzcc-on 开启资产处监控
-qfnuzcc-off 关闭资产处监控
+qfnujwcon 开启教务处监控
+qfnujwcoff 关闭教务处监控
+qfnuzccon 开启资产处监控
+qfnuzccoff 关闭资产处监控
 更多内容更新中...（鸽）
 
 技术支持：W1ndys

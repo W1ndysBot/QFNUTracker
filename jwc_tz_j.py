@@ -28,7 +28,7 @@ async def handle_QFNUTracker_group_message(websocket, msg):
         role = str(msg.get("sender", {}).get("role"))
         message_id = str(msg.get("message_id"))
         if is_authorized(role, user_id):
-            if raw_message == "qfnujwc-on":
+            if raw_message == "qfnujwcon":
                 if load_function_status(group_id, "QFNU教务处"):
                     await send_group_msg(
                         websocket,
@@ -48,7 +48,7 @@ async def handle_QFNUTracker_group_message(websocket, msg):
                     )
                     return
 
-            if raw_message == "qfnujwc-off":
+            if raw_message == "qfnujwcoff":
                 if load_function_status(group_id, "QFNU教务处"):
                     save_function_status(group_id, False, "QFNU教务处")
                     logging.info(f"已取消群 {group_id} 的QFNU教务处公告监控任务")
