@@ -46,8 +46,8 @@ async def monitor_announcements(websocket, url, last_title, site_name, last_chec
     if last_check_time and last_check_time.minute == current_time.minute:
         return last_title, last_check_time
 
-    # 添加超时退出的逻辑，这里假设如果超过2分钟没有成功，则退出
-    if last_check_time and (current_time - last_check_time).total_seconds() > 120:
+    # 添加超时退出的逻辑，这里假设如果超过10分钟没有成功，则退出
+    if last_check_time and (current_time - last_check_time).total_seconds() > 600:
         logging.error(f"{site_name}监控超时，自动退出")
         return last_title, last_check_time  # 可以考虑抛出异常或其他退出方式
 
