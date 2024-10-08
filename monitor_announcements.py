@@ -47,7 +47,7 @@ def get_first_announcement(url):
 def fetch_content(url, last_title):
     # 使用新函数获取第一个公告
     current_title, link, summary = get_first_announcement(url)
-    logging.info(current_title)
+    # logging.info(current_title)
     if last_title is None:
         return current_title, None, link, summary
 
