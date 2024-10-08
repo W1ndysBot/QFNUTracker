@@ -81,8 +81,8 @@ async def monitor_announcements(websocket, url, last_title, site_name, last_chec
         short_summary = (
             summary[:40] if summary else "获取失败"
         )  # 检查 summary 是否为 None，如果为 None，则返回 "获取失败"
-        logging.info(title)
-        logging.info(link)
+        # logging.info(title)
+        # logging.info(link)
         all_switches = get_all_group_switches()
         for group_id, switches in all_switches.items():
             if switches.get(f"{site_name}监控"):
