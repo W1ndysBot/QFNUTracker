@@ -90,6 +90,6 @@ async def monitor_announcements(websocket, url, last_title, site_name, last_chec
                 await send_group_msg(
                     websocket,
                     group_id,
-                    f"{site_name}公告有新内容啦：\n\n标题：{title}\n\n摘要：{short_summary}...\n\n链接：{link}\n\n技术支持：\nwww.w1ndys.top",
+                    f"{site_name}公告有新内容啦：\n\n标题：{title}\n\n摘要：{short_summary}...\n\n链接：{link}\n\n技术支持：www.w1ndys.top",
                 )
     return last_title, last_check_time
