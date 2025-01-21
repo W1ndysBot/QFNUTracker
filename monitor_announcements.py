@@ -17,7 +17,7 @@ from app.api import send_group_msg
 
 def get_first_announcement(url):
     try:
-        response = requests.get(url, timeout=1)
+        response = requests.get(url, timeout=3)
         response.encoding = "utf-8"
         soup = BeautifulSoup(response.text, "html.parser")
         found_content = soup.find("ul", {"class": "n_listxx1"})
